@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Alaska PRO - Volkswagen Golf IV 3D</title>
+
+<style>
+:root {
+  --background: #151b20;
+  --text: #ffffff;
+  --muted: #87949d;
+  --accent: #8da9b8;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  font-family: Arial, sans-serif;
+}
+
+#viewer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at center, #303b43, #151b20 75%);
+}
+
+#model {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: transparent;
+}
+
+.top-info {
+  position: absolute;
+  top: 12px;
+  left: 15px;
+  z-index: 5;
+  pointer-events: none;
+  color: var(--text);
+  text-shadow: 0 2px 5px #000;
+}
+
+.top-info small {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--muted);
+}
+
+.top-info h2 {
+  font-size: 19px;
+  margin-top: 5px;
+}
+
+.top-info p {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.bottom-info {
+  position: absolute;
+  bottom: 12px;
+  left: 15px;
+  z-index: 5;
+  color: rgba(255,255,255,.55);
+  font-size: 9px;
+  letter-spacing: 2px;
+  pointer-events: none;
+}
+
+.controls {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 7px;
+  z-index: 10;
+}
+
+.controls button {
+  width: 39px;
+  height: 39px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.15);
+  background: rgba(25,34,40,.9);
+  color: white;
+  font-size: 17px;
+}
+
+.controls button:active {
+  background: #536e7c;
+}
+
+.loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  color: white;
+  background: #151b20;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity .5s;
+}
+
+.loading.hide {
+  opacity: 0;
+}
+
+.spinner {
+  width: 35px;
+  height: 35px;
+  border: 3px solid #384750;
+  border-top-color: #9bb7c6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#error {
+  display: none;
+  position: absolute;
+  bottom: 65px;
+  left: 12px;
+  right: 12px;
+  background: rgba(90,30,30,.95);
+  padding: 10px;
+  border-radius: 9px;
+  color: white;
+  font-size: 11px;
+  z-index: 15;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="viewer">
+
+  <div class="top-info">
+    <small>ALASKA AUTOMOTIVE</small>
+    <h2>Volkswagen Golf IV</h2>
+    <p>2001 · 4MOTION · 5 portes</p>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <span>Chargement du modèle 3D...</span>
+  </div>
+
+  <iframe
+    id="model"
+    title="Volkswagen Golf IV - Modèle 3D"
+    src="https://sketchfab.com/models/ca307a9d3d914d6fb920681fb71b57d7/embed?autostart=1&ui_theme=dark&ui_infos=0&ui_controls=1"
+    allow="autoplay; fullscreen; xr-spatial-tracking"
+    allowfullscreen
+    onload="modelLoaded()">
+  </iframe>
+
+  <div id="error">
+    Impossible de charger le modèle 3D.
+    Vérifie ta connexion Internet.
+  </div>
+
+  <div class="bottom-info">
+    VW GOLF IV · 3D EXPERIENCE
+  </div>
+
+  <div class="controls">
+
+    <button onclick="reloadModel()" title="Recharger">
+      ↻
+    </button>
+
+    <button onclick="fullscreen()" title="Plein écran">
+      ⛶
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+"use strict";
+
+const model = document.getElementById("model");
+const loading = document.getElementById("loading");
+const error = document.getElementById("error");
+
+let loadTimeout;
+
+function modelLoaded() {
+  clearTimeout(loadTimeout);
+
+  loading.classList.add("hide");
+
+  setTimeout(() => {
+    loading.style.display = "none";
+  }, 600);
+}
+
+function reloadModel() {
+  loading.style.display = "flex";
+  loading.classList.remove("hide");
+  error.style.display = "none";
+
+  const url = model.src;
+  model.src = "about:blank";
+
+  setTimeout(() => {
+    model.src = url;
+  }, 100);
+}
+
+function fullscreen() {
+  if (model.requestFullscreen) {
+    model.requestFullscreen().catch(err => {
+      console.error("Plein écran indisponible :", err);
+    });
+  }
+}
+
+loadTimeout = setTimeout(() => {
+  if (loading.style.display !== "none") {
+    error.style.display = "block";
+  }
+}, 20000);
+
+// Réception des paramètres envoyés par Alaska.
+window.addEventListener("message", event => {
+  if (!event.data || typeof event.data !== "object") return;
+
+  if (event.data.type === "QUALITY") {
+    console.log("Qualité demandée :", event.data.value);
+  }
+});
+</script>
+
+</body>
+</html>
